@@ -1,6 +1,7 @@
 let api = {};
 let shoppingList = [{ name: 'TestAPI', amount: 2, id: 0 }];
 let idCounter = 1;
+const status = require('../helpers/http_status');
 
 api.getList = (req, res) => {
     res.json({'shoppingList': shoppingList});
@@ -12,14 +13,14 @@ api.getById = (req, res) => {
     if(item){
         res.json(item);
     }else{
-        res.status(500).send('Item não encontrado');
+        res.status(status.InternalServerError).send('Item não encontrado');
     }
 }
 
 api.removeItem = (req, res) => {
     const id = req.params.id;
     shoppingList = shoppingList.filter(item => item.id != id);
-    res.sendStatus(204);
+    res.sendStatus(status.OkNoContent);
 }
 
 api.addItem = (req, res) => {

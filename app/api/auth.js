@@ -2,27 +2,30 @@ module.exports = function(app){
     var api = {};
     var jwt = require('jsonwebtoken');
     var users =  [{ nome: 'Oliver', usuario: 'jair', senha: 'jairjair' }];
+    var mongoose = require('mongoose');
+    var model = mongoose.model('User');
+    var status = require('../helpers/http_status')
 
     api.signUp = (req, res) => {
         let user = req.body;
-        users.push(user);
-        console.log(users);
-        res.sendStatus(200);
+        model.create(user)
+            .then(data => res.json(data))
+            .catch(error => res.status(status.InternalServerError).json(error))
     }
     
     api.signIn = (req, res) => {
         let login = req.body;
-        const logado = users.find(user => {
-            return user.usuario == login.usuario && user.senha == login.senha
-        });
-        if(logado){
-            const token = jwt.sign(logado, app.get('secret'), { expiresIn: 84600 });
-            res.set('x-access-token', token);
-            res.sendStatus(200);
-        }else{
-            console.log('Usuário não encontrado');
-            res.sendStatus(401);
-        }
+        model.findOne({ usuario: login.usuario, senha: login.senha })
+            .then(data => {
+                if(data){
+                    const token = jwt.sign(logado, app.get('secret'), { expiresIn: 84600 });
+                    res.set('x-access-token', token);
+                    res.sendStatus(status.Ok);
+                }else{
+                    res.sendStatus(status.Forbidden);
+                }
+            })
+            .catch(error => res.sendStatus(status.Forbidden))
     }
     
     api.verifyToken = (req, res, next) => {
