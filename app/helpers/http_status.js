@@ -8,7 +8,8 @@ const HttpStatus = Object.freeze({
     NotFound: 404,
     UnprocessableEntity: 422,
     InternalServerError: 500,
-    NotImplemented: 501
+    NotImplemented: 501,
+    Testing: 100
   });
   
 module.exports = HttpStatus;
