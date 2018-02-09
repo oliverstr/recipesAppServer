@@ -17,6 +17,7 @@ module.exports = function(app){
         let login = req.body;
         model.findOne({ usuario: login.usuario, senha: login.senha })
             .then(data => {
+                console.log(data);
                 if(data){
                     const token = jwt.sign(logado, app.get('secret'), { expiresIn: 84600 });
                     res.set('x-access-token', token);
