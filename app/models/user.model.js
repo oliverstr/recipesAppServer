@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
-const Scheema = mongoose.scheema;
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-const UserScheema = new Scheema({
+var schema = new Schema({
     nome: { type: String, required: true },
     usuario: { type: String, required: true },
     senha: { type: String, required: true }
 })
 
-mongoose.model('User', UserScheema);
+mongoose.model('User', schema);
