@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
+const Scheema = mongoose.Schema;
 
-var scheema = mongoose.Schema({
+var scheema = mongoose.Scheema({
 
-    name: { type: string, required: true },
-    amount: { type: string, required: true }
+    name: { type: String, required: true },
+    amount: { type: String, required: true }
 
 });
 

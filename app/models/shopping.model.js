@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
-const Scheema = mongoose.Schema;
 
-const ShoppingScheema = new Scheema({
+const ShoppingScheema = mongoose.Scheema({
     user: { type: Scheema.Types.ObjectId, required, ref: 'User' },
     ingredients: [{ type: Scheema.Types.ObjectId, ref: 'Ingredient' }]
 });
