@@ -9,7 +9,9 @@ app.use(cors({ exposedHeaders: 'x-access-token', allowedHeaders: ['x-access-toke
 app.set('secret', 'betojamaica');
 
 consign({ cwd: 'app' })
-    .include('api')
+    .include('models')
+    .then('api')
+    .then('routes/auth.js')
     .then('routes')
     .into(app);
 
