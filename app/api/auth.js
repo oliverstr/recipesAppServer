@@ -14,19 +14,23 @@ module.exports = function(app){
     }
     
     api.signIn = (req, res) => {
-        let login = req.body;
-        model.findOne({ usuario: login.usuario, senha: login.senha })
+        var login = req.body;
+        model.findOne(login)
+            .lean()
             .then(data => {
-                console.log(data);
                 if(data){
-                    const token = jwt.sign(logado, app.get('secret'), { expiresIn: 84600 });
+                    const token = jwt.sign(data, app.get('secret'), { expiresIn: 84600 });
                     res.set('x-access-token', token);
                     res.sendStatus(status.Ok);
                 }else{
+                    console.log('Usuario não encontrado.');
                     res.sendStatus(status.Forbidden);
                 }
             })
-            .catch(error => res.sendStatus(status.Forbidden))
+            .catch(error => {
+                console.log(error);
+                res.status(status.InternalServerError).json(error);
+            })
     }
     
     api.verifyToken = (req, res, next) => {
@@ -35,14 +39,14 @@ module.exports = function(app){
             jwt.verify(token, app.get('secret'), (error, decoded) => {
                 if(error){
                     console.log('token rejeitado');
-                    res.sendStatus(401);
+                    res.sendStatus(status.Forbidden);
                 }
                 req.usuario = decoded;
                 next();
             })
         }else{
             console.log('Token não enviado.');
-            res.sendStatus(401);
+            res.sendStatus(status.Forbidden);
         }
     }
     
