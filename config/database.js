@@ -1,8 +1,7 @@
 module.exports = function(uri){
 
     const mongoose = require('mongoose');
-    console.log(uri);
-    mongoose.connect('mongodb://' + uri, { uri_decode_auth: true });
+    mongoose.connect('mongodb://' + uri);
 
     mongoose.connection.on('connected', function(){
         console.log("Conectado ao mongodb");

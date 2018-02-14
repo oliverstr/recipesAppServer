@@ -4,7 +4,7 @@ module.exports = function(app){
     var users =  [{ nome: 'Oliver', usuario: 'jair', senha: 'jairjair' }];
     var mongoose = require('mongoose');
     var model = mongoose.model('User');
-    var status = require('../helpers/http_status')
+    var status = require('../helpers/http_status');
 
     api.signUp = (req, res) => {
         let user = req.body;
@@ -21,7 +21,7 @@ module.exports = function(app){
                 if(data){
                     const token = jwt.sign(data, app.get('secret'), { expiresIn: 84600 });
                     res.set('x-access-token', token);
-                    res.sendStatus(status.Ok);
+                    res.json(data);
                 }else{
                     console.log('Usuario não encontrado.');
                     res.sendStatus(status.Forbidden);

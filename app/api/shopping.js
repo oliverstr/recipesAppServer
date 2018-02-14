@@ -1,20 +1,61 @@
-let api = {};
-let shoppingList = [{ name: 'TestAPI', amount: 2, id: 0 }];
-let idCounter = 1;
+var api = {};
+var shoppingList = [{ name: 'TestAPI', amount: 2, id: 0 }];
+var idCounter = 1;
 const status = require('../helpers/http_status');
+var mongoose = require('mongoose');
+var shoppingModel = mongoose.model('Shopping');
+var ingredientModel = mongoose.model('Ingredient');
 
 api.getList = (req, res) => {
-    res.json({'shoppingList': shoppingList});
+    console.log(shopping);
+    shoppingModel.findOne(shopping)
+    .lean()
+    .then(data => {
+        if(data){
+            console.log(data);
+            res.json({'shoppingList': data});
+        } else {
+            shoppingModel.create(shopping)
+            .then(data => {
+                console.log(data);
+                res.json({'shoppingList': data});
+            })
+            .catch(error => {
+                console.log(error);
+                res.status(status.InternalServerError).json(error);
+            })
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        res.status(status.InternalServerError).json(error);
+    })
 }
 
-api.getById = (req, res) => {
+api.getByUserId = (req, res) => {
     const id = req.params.id;
-    const item = shoppingList.find(item => item.id == id);
-    if(item){
-        res.json(item);
-    }else{
-        res.status(status.InternalServerError).send('Item não encontrado');
-    }
+    const shopping = { user: mongoose.Types.ObjectId(id) }
+    shoppingModel.findOne(shopping)
+    .populate('ingredients')
+    .lean()
+    .then(data => {
+        if(data){
+            res.json({'shoppingList': data});
+        } else {
+            shoppingModel.create(shopping)
+            .then(data => {
+                res.json({'shoppingList': data});
+            })
+            .catch(error => {
+                console.log(error);
+                res.status(status.InternalServerError).json(error);
+            })
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        res.status(status.InternalServerError).json(error);
+    })
 }
 
 api.removeItem = (req, res) => {
@@ -38,12 +79,86 @@ api.addItem = (req, res) => {
     res.json(req.body);
 }
 
+api.saveShopping = (req, res) => {
+    shopping = req.body;
+    saveIngredients(shopping.ingredients)
+    .then((data) => {
+        shopping.ingredients = data;
+        if(shopping._id){
+            shoppingModel.findByIdAndUpdate(shopping._id, shopping)
+            .populate('ingredients')
+            .then((data) => {
+                shopping = data;
+                res.json(data);
+            })
+            .catch(error => {
+                console.log(error);
+                res.status(status.InternalServerError).json(error); 
+            });
+        }else{
+            shoppingModel.create(shopping)
+            .then(data => {
+                shopping = data;
+                res.json(data);
+            })
+            .catch(error => {
+                console.log(error);
+                res.status(status.InternalServerError).json(error); 
+            });
+        }
+    })
+    .catch(error => {
+        console.log(error);
+        res.status(status.InternalServerError).json(error); 
+    });
+}
+
+
 api.updateItem = (req, res) => {
     const id = req.params.id;
     const item = req.body;
     const index = shoppingList.findIndex(ingredient => ingredient.id == id);
     shoppingList[index] = item;
     res.json(item);
+}
+
+function saveIngredients(ingredients) {
+    return new Promise((resolve, reject) => {
+        retorno = [];
+        ingredients.forEach((ingredient, index) => {
+            if(ingredient._id){
+                ingredientModel.findByIdAndUpdate(ingredient._id, ingredient)
+                .lean()
+                .then(data => {
+                    retorno.push(data);
+                    if(index === ingredients.length - 1){
+                        resolve(retorno);
+                    }
+                })
+                .catch(error => {
+                    reject(error);
+                })
+            }else{
+                ingredientModel.create(ingredient)
+                .then(data => {
+                    retorno.push(data);
+                    if(index === ingredients.length - 1){
+                        resolve(retorno);
+                    }
+                })
+                .catch(error => {
+                    reject(error);
+                })
+            }
+            
+            // return ingredient;
+        });
+        // Promise.all(ingredients).then(completed => {
+        //     console.log(completed);
+        //     resolve(completed);
+        // });
+        // console.log(ingredients);
+    })
 }
 
 module.exports = api;
