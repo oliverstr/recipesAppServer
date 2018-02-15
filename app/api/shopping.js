@@ -2,6 +2,7 @@ var api = {};
 var shoppingList = [{ name: 'TestAPI', amount: 2, id: 0 }];
 var idCounter = 1;
 const status = require('../helpers/http_status');
+const asyncForEach = require('../helpers/async_foreach');
 var mongoose = require('mongoose');
 var shoppingModel = mongoose.model('Shopping');
 var ingredientModel = mongoose.model('Ingredient');
@@ -81,6 +82,7 @@ api.addItem = (req, res) => {
 
 api.saveShopping = (req, res) => {
     shopping = req.body;
+    shopping.ingredients = shopping.ingredients || [];
     saveIngredients(shopping.ingredients)
     .then((data) => {
         shopping.ingredients = data;
@@ -125,39 +127,30 @@ api.updateItem = (req, res) => {
 function saveIngredients(ingredients) {
     return new Promise((resolve, reject) => {
         retorno = [];
-        ingredients.forEach((ingredient, index) => {
-            if(ingredient._id){
-                ingredientModel.findByIdAndUpdate(ingredient._id, ingredient)
-                .lean()
-                .then(data => {
-                    retorno.push(data);
-                    if(index === ingredients.length - 1){
-                        resolve(retorno);
-                    }
-                })
-                .catch(error => {
-                    reject(error);
-                })
-            }else{
-                ingredientModel.create(ingredient)
-                .then(data => {
-                    retorno.push(data);
-                    if(index === ingredients.length - 1){
-                        resolve(retorno);
-                    }
-                })
-                .catch(error => {
-                    reject(error);
-                })
-            }
-            
-            // return ingredient;
-        });
-        // Promise.all(ingredients).then(completed => {
-        //     console.log(completed);
-        //     resolve(completed);
-        // });
-        // console.log(ingredients);
+        const start = async () => {
+            await asyncForEach(ingredients, async (ingredient) => {
+                if(ingredient._id){
+                    await ingredientModel.findByIdAndUpdate(ingredient._id, ingredient)
+                    .lean()
+                    .then(data => {
+                        retorno.push(data);
+                    })
+                    .catch(error => {
+                        reject(error);
+                    })
+                }else{
+                    await ingredientModel.create(ingredient)
+                    .then(data => {
+                        retorno.push(data);
+                    })
+                    .catch(error => {
+                        reject(error);
+                    })
+                }
+            })
+            resolve(retorno);
+        }
+        start();
     })
 }
 
