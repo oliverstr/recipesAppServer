@@ -1,11 +1,10 @@
 var api = {};
 var shoppingList = [{ name: 'TestAPI', amount: 2, id: 0 }];
 var idCounter = 1;
-const status = require('../helpers/http_status');
-const asyncForEach = require('../helpers/async_foreach');
+var status = require('../helpers/http_status');
+var ingredientApi = require('./ingredient');
 var mongoose = require('mongoose');
 var shoppingModel = mongoose.model('Shopping');
-var ingredientModel = mongoose.model('Ingredient');
 
 api.getList = (req, res) => {
     console.log(shopping);
@@ -83,7 +82,7 @@ api.addItem = (req, res) => {
 api.saveShopping = (req, res) => {
     shopping = req.body;
     shopping.ingredients = shopping.ingredients || [];
-    saveIngredients(shopping.ingredients)
+    ingredientApi.saveIngredients(shopping.ingredients)
     .then((data) => {
         shopping.ingredients = data;
         if(shopping._id){
@@ -124,34 +123,6 @@ api.updateItem = (req, res) => {
     res.json(item);
 }
 
-function saveIngredients(ingredients) {
-    return new Promise((resolve, reject) => {
-        retorno = [];
-        const start = async () => {
-            await asyncForEach(ingredients, async (ingredient) => {
-                if(ingredient._id){
-                    await ingredientModel.findByIdAndUpdate(ingredient._id, ingredient)
-                    .lean()
-                    .then(data => {
-                        retorno.push(data);
-                    })
-                    .catch(error => {
-                        reject(error);
-                    })
-                }else{
-                    await ingredientModel.create(ingredient)
-                    .then(data => {
-                        retorno.push(data);
-                    })
-                    .catch(error => {
-                        reject(error);
-                    })
-                }
-            })
-            resolve(retorno);
-        }
-        start();
-    })
-}
+
 
 module.exports = api;
